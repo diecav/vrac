@@ -1,5 +1,5 @@
 name: Swisscom Ubuntu
-version: 11
+version: 12
 formatVersion: 1
 inputs:
   region:
