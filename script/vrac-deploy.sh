@@ -1,7 +1,8 @@
 #!/bin/bash
 api_token='h10m87RVGmmKYhrsUH1aKFV6NSo93pUFTHr64Z1PUg7d7uXx6CHvjQEnfQZOVXky'
 vrac_host='https://api.mgmt.cloud.vmware.com'
-content_source_id='1eeccfdc-aeea-4b3d-959c-462e085eefbe'
+integration_cs_id='1eeccfdc-aeea-4b3d-959c-462e085eefbe'
+content_source_id='06064dae-6fa7-415b-9ca2-0e6473a2077b'
 api_login='/iaas/api/login'
 api_sync_repo='/content/api/sourcecontrol/sync-requests'
 
@@ -44,7 +45,7 @@ release_unrelease_bp_version(){
 # Share blueprint with all the other projects in the organization
 set_bp_sharing_setting(){
 	local bp_id=$1
-	local bp=$(curl -s -X get -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" "$vrac_host/blueprint/api/blueprints/$bp_id")
+	local bp=$(curl -s -X GET -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" "$vrac_host/blueprint/api/blueprints/$bp_id")
 	bp=$(echo "$bp" | jq '.requestScopeOrg = true')
 	local response=$(curl -s -X PUT -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" -d "$bp" "$vrac_host/blueprint/api/blueprints/$bp_id")
 	echo "$response"
@@ -52,8 +53,10 @@ set_bp_sharing_setting(){
 
 # Save and sync content source
 sync_content_source(){
-	local bp_id=$1
-
+	local integration_cs=$(curl -s -X GET -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" "$vrac_host/catalog/api/admin/sources/$content_source_id")
+	local response=$(curl -s -X POST -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" -d "$integration_cs" "$vrac_host/catalog/api/admin/sources")
+	local cs_id=$(echo "$response" | jq -r .id)
+	echo "$cs_id"
 }
 
 
@@ -79,12 +82,11 @@ echo ""
 #
 ########################
 echo "Sync git repo..."
-sync_resp=`curl -s -X POST -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" -d '{"sourceId": "'$content_source_id'"}' "$vrac_host$api_sync_repo"`
+sync_resp=`curl -s -X POST -H "Content-type:application/json" -H "Accept:application/json" -H "Authorization:Bearer $access_token" -d '{"sourceId": "'$integration_cs_id'"}' "$vrac_host$api_sync_repo"`
 sync_status=$(echo "$sync_resp" | jq -r .status)
 sync_request_id=$(echo "$sync_resp" | jq -r .requestId)
 
 echo "Sync status: $sync_status"
-echo "requestId: $sync_request_id"
 
 if [[ "$sync_status" == "STARTED" ]];then
 	echo "  Sync started - Polling status until change.."
@@ -151,7 +153,7 @@ for bp_id in "${bp_ids[@]}"; do
 	if [ $last_bp_status == "RELEASED" ];then
 		echo "  Blueprint $bp_id IS released - $last_bp_status"
 	else
-		echo "  - Blueprint $bp_id IS NOT released - $last_bp_status"
+		echo "  Blueprint $bp_id IS NOT released - $last_bp_status"
 		echo "    Release BP..."
 		# First silently unrelease the old BP versions
         old_bp_versions=$(get_bp_versions_by_status "$bp_id" "released")
@@ -171,20 +173,34 @@ for bp_id in "${bp_ids[@]}"; do
 			echo ""
 		fi
 		# Set the Blueprint as shared across all projects
-		echo "Set bluepring shared across projects..."
+		echo "    Set bluepring shared across projects..."
 		set_as_shared=$(set_bp_sharing_setting "$bp_id")
-		echo "$set_as_shared"
 		is_shared=$(echo "$set_as_shared" | jq .requestScopeOrg)
 		if [ "$is_shared" == "true" ];then
-			echo "Bluepring set as shared"
+			echo "    Bluepring set as shared"
+			echo ""
 		else
-			echo "Unable to set blueprint as shared"
+			echo "    Unable to set blueprint as shared"
+			echo ""
 		fi
 	fi
 done
 
 
-
+#########################
+#
+# Sync the content source
+#
+#########################
+echo "Synchronize content source..."
+id=$(sync_content_source)
+if [ "$id" == "$content_source_id" ];then
+	echo "Content source synchronization done"
+	echo ""
+else
+	echo "Unable to synchronize content source"
+	echo ""
+fi
 
 
 
