@@ -1,5 +1,5 @@
-name: Swisscom Ubuntu
-version: 13
+name: Swisscom OS-1
+version: 1
 formatVersion: 1
 inputs:
   region:
@@ -42,7 +42,7 @@ inputs:
     title: Public IP
   bootDiskSize:
     type: integer
-    default: 40
+    default: 20
     title: Disk Size
     minimum: 10
   disk:
