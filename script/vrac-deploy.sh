@@ -170,7 +170,6 @@ for bp_id in "${bp_ids[@]}"; do
 		last_bp_status=$(echo "$rel_response" | jq -r .status)
 		if [ $last_bp_status == "RELEASED" ];then
 			echo "    Blueprint $bp_id is now $last_bp_status"
-			echo ""
 		fi
 		# Set the Blueprint as shared across all projects
 		echo "    Set bluepring shared across projects..."
@@ -178,10 +177,8 @@ for bp_id in "${bp_ids[@]}"; do
 		is_shared=$(echo "$set_as_shared" | jq .requestScopeOrg)
 		if [ "$is_shared" == "true" ];then
 			echo "    Bluepring set as shared"
-			echo ""
 		else
 			echo "    Unable to set blueprint as shared"
-			echo ""
 		fi
 	fi
 done
@@ -192,6 +189,7 @@ done
 # Sync the content source
 #
 #########################
+echo ""
 echo "Synchronize content source..."
 id=$(sync_content_source)
 if [ "$id" == "$content_source_id" ];then
