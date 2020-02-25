@@ -1,5 +1,5 @@
-name: Swisscom RHEL-7
-version: 14
+name: Swisscom SLES12
+version: 1
 formatVersion: 1
 inputs:
   region:
