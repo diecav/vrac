@@ -1,5 +1,5 @@
-name: Swisscom Ubuntu
-version: 16
+name: Swisscom OS2
+version: 1
 formatVersion: 1
 inputs:
   region:
