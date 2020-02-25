@@ -1,5 +1,5 @@
 name: Swisscom Kubuntu
-version: 4
+version: 5
 formatVersion: 1
 inputs:
   region:
@@ -42,7 +42,7 @@ inputs:
     title: Public IP
   bootDiskSize:
     type: integer
-    default: 20
+    default: 60
     title: Disk Size
     minimum: 10
   disk:
