@@ -1,5 +1,5 @@
 name: Swisscom RHEL-7
-version: 12
+version: 13
 formatVersion: 1
 inputs:
   region:
@@ -42,7 +42,7 @@ inputs:
     title: Public IP
   bootDiskSize:
     type: integer
-    default: 20
+    default: 30
     title: Disk Size
     minimum: 10
   disk:
